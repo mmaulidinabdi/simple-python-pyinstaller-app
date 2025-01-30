@@ -22,4 +22,5 @@ if argnumbers != 2 :
     print("       If add2vals is not in your path, usage is './add2vals X Y'.")
     print("       If unbundled, usage is 'python add2vals.py X Y'.")
     print("")
+    print("test Poll SCM")
     sys.exit(1)
