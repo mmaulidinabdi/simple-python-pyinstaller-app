@@ -20,12 +20,16 @@ node {
         input message: 'Lanjutkan ke tahap Deploy?', ok: 'Proceed'
     }
 
-    stage('Deploy') {
-        docker.image('cdrx/pyinstaller-linux:python2').inside {
+     stage('Deploy') {
+        docker.image('python:3.9').inside('--user root') {
+            sh 'pip install pyinstaller'
             sh 'pyinstaller --onefile sources/add2vals.py'
+            
+            sleep(time: 60)
+
+            echo 'Pipeline berhasil dieksekusi'
         }
+
         archiveArtifacts 'dist/add2vals'
-        sh 'echo "Menunggu selama 1 menit sebelum pipeline selesai..."'
-        sh 'sleep 60'
     }
 }
