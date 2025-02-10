@@ -36,7 +36,7 @@ node {
         sshagent(['ec2-ssh-key']) {
                 sh '''
                 scp -o StrictHostKeyChecking=no dist/add2vals ubuntu@$EC2_IP:/home/ubuntu/
-                ssh ubuntu@$EC2_IP "chmod +x /home/ubuntu/add2vals && /home/ubuntu/add2vals & sleep 60 && pkill -f add2vals"
+                ssh ubuntu@$EC2_IP "chmod +x /home/ubuntu/add2vals && nohup /home/ubuntu/add2vals 10 20 > /home/ubuntu/add2vals.log 2>&1 & sleep 60 && pkill -f add2vals"
                 '''
         }
 
