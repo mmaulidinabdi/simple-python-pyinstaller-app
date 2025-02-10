@@ -1,5 +1,6 @@
 node {
     stage('Checkout') {
+        cleanWs()
         checkout scm
     }
 
@@ -21,7 +22,7 @@ node {
     }
 
     stage('Deploy') {
-        docker.image('python:3.9').inside {
+        docker.image('python:3.9').inside('--user root') {
             sh '''
             pip install pyinstaller
             pyinstaller --onefile sources/add2vals.py
