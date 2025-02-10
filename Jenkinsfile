@@ -58,15 +58,13 @@ node {
 
             docker ps -a | grep add2vals-container && docker stop add2vals-container && docker rm add2vals-container || echo "Container not found, skipping removal."
 
-
             # Jalankan container baru
             sudo docker run -d --name add2vals-container mmauld/add2vals-app:latest
 
             # Tunggu 1 menit sebelum menghentikan container
             sleep 60
             docker stop add2vals-container || true
-
-            EOF
+EOF
             '''
         }
         echo 'Pipeline selesai'
