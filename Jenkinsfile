@@ -23,10 +23,11 @@ node {
 
     stage('Deploy') {
         docker.image('python:3.9').inside('--user root') {
-            sh '''
-            pip install --no-cache-dir --user pyinstaller
-            pyinstaller --onefile sources/add2vals.py
-            '''
+               sh '''
+                pip install --no-cache-dir --user pyinstaller
+                export PATH=$HOME/.local/bin:$PATH
+                pyinstaller --onefile sources/add2vals.py
+                '''
         }
 
         sshagent(['ec2-ssh-key']) {
