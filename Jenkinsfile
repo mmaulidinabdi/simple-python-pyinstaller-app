@@ -56,9 +56,8 @@ node {
             # Tarik dan jalankan container
             sudo docker pull mmauld/add2vals-app:latest
 
-            # Hentikan container sebelumnya jika ada
-            sudo docker stop add2vals-container || true
-            sudo docker rm add2vals-container || true
+            docker ps -a | grep add2vals-container && docker stop add2vals-container && docker rm add2vals-container || echo "Container not found, skipping removal."
+
 
             # Jalankan container baru
             sudo docker run -d --name add2vals-container mmauld/add2vals-app:latest
