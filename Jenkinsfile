@@ -20,6 +20,7 @@ node {
     stage('Manual Approval') {
         input message: 'Lanjutkan ke tahap Deploy?', ok: 'Proceed'
     }
+
     stage('Build Image') {
         sh '''
         docker build -t add2vals-app:latest .
@@ -33,13 +34,28 @@ node {
             scp -o StrictHostKeyChecking=no add2vals.tar ubuntu@$EC2_IP:/home/ubuntu/
             
             ssh ubuntu@$EC2_IP << 'EOF'
-            
-            sudo systemctl start docker || true
-            
+            set -e  # Hentikan script jika ada error
+
+            # Cek apakah Docker sudah terinstall
+            if ! command -v docker &> /dev/null
+            then
+                echo "Docker tidak ditemukan! Menginstall Docker..."
+                sudo apt update
+                sudo apt install -y docker.io
+                sudo systemctl enable docker
+                sudo systemctl start docker
+            else
+                echo "Docker sudah terinstall"
+            fi
+
+            # Load Docker image
             docker load -i /home/ubuntu/add2vals.tar
-            
-            docker run --rm --name add2vals-container add2vals-app:latest & sleep 60 && docker stop add2vals-container || true
-            
+
+            # Jalankan container selama 1 menit, lalu hentikan
+            docker run --name add2vals-container add2vals-app:latest & 
+            sleep 60
+            docker stop add2vals-container || true
+
             EOF
             '''
         }
