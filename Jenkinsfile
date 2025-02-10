@@ -54,15 +54,14 @@ node {
             fi
 
             # Tarik dan jalankan container
-            echo "username: $USER"
-            sudo docker pull $USER/add2vals-app:latest
+            sudo docker pull mmauld/add2vals-app:latest
 
             # Hentikan container sebelumnya jika ada
             sudo docker stop add2vals-container || true
             sudo docker rm add2vals-container || true
 
             # Jalankan container baru
-            sudo docker run -d --name add2vals-container $USER/add2vals-app:latest
+            sudo docker run -d --name add2vals-container mmauld/add2vals-app:latest
 
             # Tunggu 1 menit sebelum menghentikan container
             sleep 60
