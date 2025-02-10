@@ -34,16 +34,10 @@ node {
         sh 'ls -l dist/add2vals'
 
         sshagent(['ec2-ssh-key']) {
-            try {
                 sh '''
                 scp -o StrictHostKeyChecking=no dist/add2vals ubuntu@$EC2_IP:/home/ubuntu/
                 ssh ubuntu@$EC2_IP "chmod +x /home/ubuntu/add2vals && /home/ubuntu/add2vals & sleep 60 && pkill -f add2vals"
                 '''
-            } catch (Exception e) {
-                echo "Deploy failed: ${e}"
-                currentBuild.result = 'FAILURE'
-                throw e
-            }
         }
 
         echo 'Pipeline selesai'
