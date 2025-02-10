@@ -40,17 +40,29 @@ node {
 
     stage('Deploy') {
         sshagent(['ec2-ssh-key']) {
-            sh '''
+             sh '''
             ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP << 'EOF'
             
-            sudo systemctl start docker || true
+            # Periksa apakah Docker sudah terinstal
+            if ! command -v docker &> /dev/null; then
+                echo "Docker tidak ditemukan, menginstal Docker..."
+                sudo apt update
+                sudo apt install -y docker.io
+                sudo systemctl enable docker
+                sudo systemctl start docker
+            fi
+
+            # Tarik dan jalankan container
             docker pull $USER/add2vals-app:latest
-            
+
+            # Hentikan container sebelumnya jika ada
             docker stop add2vals-container || true
             docker rm add2vals-container || true
-            
+
+            # Jalankan container baru
             docker run -d --name add2vals-container $USER/add2vals-app:latest
 
+            # Tunggu 1 menit sebelum menghentikan container
             sleep 60
             docker stop add2vals-container || true
 
