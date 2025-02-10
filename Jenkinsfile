@@ -23,43 +23,32 @@ node {
 
     stage('Build Image') {
         sh '''
-        docker build -t add2vals-app:latest .
-        docker save -o add2vals.tar add2vals-app:latest
+        docker build -t mydockerhubuser/add2vals-app:latest .
+        docker save -o add2vals.tar mydockerhubuser/add2vals-app:latest
         '''
+    }
+
+    stage('Push to Docker Hub') {
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+            sh "echo $PASS | docker login -u $USER --password-stdin"
+            sh "docker push $USER/add2vals-app:latest"
+        }
     }
 
     stage('Deploy') {
         sshagent(['ec2-ssh-key']) {
             sh '''
             scp -o StrictHostKeyChecking=no add2vals.tar ubuntu@$EC2_IP:/home/ubuntu/
-            
+
             ssh ubuntu@$EC2_IP << 'EOF'
-            set -e  # Hentikan script jika ada error
 
-            # Cek apakah Docker sudah terinstall
-            if ! command -v docker &> /dev/null
-            then
-                echo "Docker tidak ditemukan! Menginstall Docker..."
-                sudo apt update
-                sudo apt install -y docker.io
-                sudo systemctl enable docker
-                sudo systemctl start docker
-            else
-                echo "Docker sudah terinstall"
-            fi
-
-            # Load Docker image
+            sudo systemctl start docker || true
             docker load -i /home/ubuntu/add2vals.tar
-
-            # Jalankan container selama 1 menit, lalu hentikan
-            docker run --name add2vals-container add2vals-app:latest & 
-            sleep 60
-            docker stop add2vals-container || true
+            docker run --rm --name add2vals-container mydockerhubuser/add2vals-app:latest & sleep 60 && docker stop add2vals-container || true
 
             EOF
             '''
         }
-
         echo 'Pipeline selesai'
     }
 }
