@@ -32,6 +32,7 @@ node {
     stage('Push to Docker Hub') {
         withCredentials([usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
             sh '''
+            echo "Docker Hub Username: $USER"
             echo $PASS | docker login -u $USER --password-stdin
             docker push $USER/add2vals-app:latest
             '''
@@ -53,6 +54,7 @@ node {
             fi
 
             # Tarik dan jalankan container
+            echo "username: $USER"
             sudo docker pull $USER/add2vals-app:latest
 
             # Hentikan container sebelumnya jika ada
