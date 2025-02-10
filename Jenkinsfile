@@ -32,7 +32,6 @@ node {
     stage('Push to Docker Hub') {
         withCredentials([usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
             sh '''
-            echo "Docker Hub Username: $USER"
             echo $PASS | docker login -u $USER --password-stdin
             docker push $USER/add2vals-app:latest
             '''
@@ -62,6 +61,7 @@ node {
             sudo docker run -d --name add2vals-container mmauld/add2vals-app:latest
 
             # Tunggu 1 menit sebelum menghentikan container
+            echo "Container berjalan selama 1 menit"
             sleep 60
             docker stop add2vals-container || true
 EOF
