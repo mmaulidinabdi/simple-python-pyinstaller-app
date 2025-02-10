@@ -20,24 +20,28 @@ node {
     stage('Manual Approval') {
         input message: 'Lanjutkan ke tahap Deploy?', ok: 'Proceed'
     }
+    stage('Build Image') {
+        sh '''
+        docker build -t add2vals-app:latest .
+        docker save -o add2vals.tar add2vals-app:latest
+        '''
+    }
 
     stage('Deploy') {
-        docker.image('python:3.9').inside('--user root') {
-               sh '''
-                pip install --no-cache-dir --user pyinstaller
-                export PATH=$HOME/.local/bin:$PATH
-                pyinstaller --onefile sources/add2vals.py
-                '''
-        }
-
-        echo "EC2_IP: $EC2_IP"
-        sh 'ls -l dist/add2vals'
-
         sshagent(['ec2-ssh-key']) {
-                sh '''
-                scp -o StrictHostKeyChecking=no dist/add2vals ubuntu@$EC2_IP:/home/ubuntu/
-                ssh ubuntu@$EC2_IP "chmod +x /home/ubuntu/add2vals && nohup /home/ubuntu/add2vals 10 20 > /home/ubuntu/add2vals.log 2>&1 & sleep 60 && pkill -f add2vals"
-                '''
+            sh '''
+            scp -o StrictHostKeyChecking=no add2vals.tar ubuntu@$EC2_IP:/home/ubuntu/
+            
+            ssh ubuntu@$EC2_IP << 'EOF'
+            
+            sudo systemctl start docker || true
+            
+            docker load -i /home/ubuntu/add2vals.tar
+            
+            docker run --rm --name add2vals-container add2vals-app:latest & sleep 60 && docker stop add2vals-container || true
+            
+            EOF
+            '''
         }
 
         echo 'Pipeline selesai'
