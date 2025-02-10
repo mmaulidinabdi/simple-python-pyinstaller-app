@@ -22,29 +22,37 @@ node {
     }
 
     stage('Build Image') {
-        sh '''
-        docker build -t mydockerhubuser/add2vals-app:latest .
-        docker save -o add2vals.tar mydockerhubuser/add2vals-app:latest
-        '''
+        withCredentials([usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+            sh '''
+            docker build -t $USER/add2vals-app:latest .
+            '''
+        }
     }
 
     stage('Push to Docker Hub') {
         withCredentials([usernamePassword(credentialsId: 'docker-hub-user', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-            sh "echo $PASS | docker login -u $USER --password-stdin"
-            sh "docker push $USER/add2vals-app:latest"
+            sh '''
+            echo $PASS | docker login -u $USER --password-stdin
+            docker push $USER/add2vals-app:latest
+            '''
         }
     }
 
     stage('Deploy') {
         sshagent(['ec2-ssh-key']) {
             sh '''
-            scp -o StrictHostKeyChecking=no add2vals.tar ubuntu@$EC2_IP:/home/ubuntu/
-
-            ssh ubuntu@$EC2_IP << 'EOF'
-
+            ssh -o StrictHostKeyChecking=no ubuntu@$EC2_IP << 'EOF'
+            
             sudo systemctl start docker || true
-            docker load -i /home/ubuntu/add2vals.tar
-            docker run --rm --name add2vals-container mydockerhubuser/add2vals-app:latest & sleep 60 && docker stop add2vals-container || true
+            docker pull $USER/add2vals-app:latest
+            
+            docker stop add2vals-container || true
+            docker rm add2vals-container || true
+            
+            docker run -d --name add2vals-container $USER/add2vals-app:latest
+
+            sleep 60
+            docker stop add2vals-container || true
 
             EOF
             '''
