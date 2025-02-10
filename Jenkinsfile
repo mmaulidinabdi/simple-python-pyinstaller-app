@@ -60,7 +60,7 @@ node {
             docker rm add2vals-container || true
 
             # Jalankan container baru
-            docker run -d --name add2vals-container $USER/add2vals-app:latest
+            sudo docker run -d --name add2vals-container $USER/add2vals-app:latest
 
             # Tunggu 1 menit sebelum menghentikan container
             sleep 60
