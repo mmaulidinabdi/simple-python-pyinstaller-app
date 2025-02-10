@@ -53,11 +53,11 @@ node {
             fi
 
             # Tarik dan jalankan container
-            docker pull $USER/add2vals-app:latest
+            sudo docker pull $USER/add2vals-app:latest
 
             # Hentikan container sebelumnya jika ada
-            docker stop add2vals-container || true
-            docker rm add2vals-container || true
+            sudo docker stop add2vals-container || true
+            sudo docker rm add2vals-container || true
 
             # Jalankan container baru
             sudo docker run -d --name add2vals-container $USER/add2vals-app:latest
